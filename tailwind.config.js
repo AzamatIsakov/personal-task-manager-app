@@ -9,7 +9,12 @@ module.exports = {
     './src/components/**/*.vue',
   ],
   theme: {
-    extend: {},
+    extend: {
+      container: {
+        center: true,
+        padding: '16px',
+      },
+    },
   },
   plugins: [],
 };

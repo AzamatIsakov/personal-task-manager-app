@@ -1,9 +1,11 @@
 <template>
-  <nav
-    class="tw-flex tw-flex-col tw-justify-center tw-gap-2 tw-px-2 tw-mt-4 tw-gap-2"
-  >
+  <nav class="tw-flex tw-flex-col tw-justify-center tw-px-2 tw-mt-4 tw-gap-2">
     <q-btn
       v-for="link in navigationLinks"
+      class="tw-font-semibold"
+      :class="{
+        'tw-text-red-600': currentRoute.path === link.to,
+      }"
       :key="link.to"
       align="left"
       flat
