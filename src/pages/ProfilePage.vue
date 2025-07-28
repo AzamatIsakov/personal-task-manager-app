@@ -6,9 +6,11 @@
       </h1>
 
       <div
-        class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-6 tw-max-w-[900px] tw-mx-auto"
+        class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 sm:lg:tw-gap-2 lg:tw-gap-6 tw-max-w-[900px] tw-mx-auto"
       >
-        <div class="tw-flex tw-flex-col tw-items-center tw-max-w-72">
+        <div
+          class="tw-flex tw-flex-col tw-items-center md:tw-max-w-72 tw-mx-auto md:tw-mx-0 tw-max-w-full tw-w-full"
+        >
           <q-input
             :model-value="email ?? 'Не указано'"
             label="Email"
@@ -24,7 +26,9 @@
             class="tw-mb-5 tw-w-full"
           />
         </div>
-        <div class="tw-flex tw-flex-col tw-items-center tw-w-72">
+        <div
+          class="tw-flex tw-flex-col tw-items-center md:tw-max-w-72 tw-mx-auto md:tw-mx-0 tw-max-w-full tw-w-full"
+        >
           <q-input
             :model-value="userName ?? 'Не указано'"
             label="Имя"

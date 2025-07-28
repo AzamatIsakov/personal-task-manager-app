@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="tw-max-w-[1000px] tw-mx-auto">
+    <div class="tw-max-w-[1000px] tw-mx-auto tw-px-3 md:tw-px-0">
       <h1 class="tw-text-4xl tw-my-5 lg:tw-text-start tw-text-center">
         Добавить задачу
       </h1>
@@ -41,6 +41,39 @@
         />
       </q-form>
 
+      <!-- Панель управления: Фильтрация и Сортировка -->
+      <div
+        class="tw-flex tw-flex-wrap tw-justify-between tw-items-baseline tw-mb-5 tw-gap-y-5"
+      >
+        <!-- Фильтрация -->
+        <q-btn-group class="tw-mx-auto lg:tw-mx-0">
+          <q-btn
+            :color="filterByStatus === 'all' ? 'red-14' : 'grey-14'"
+            label="Все"
+            @click="filterByStatus = 'all'"
+            class="tw-text-[11px] md:tw-text-sm"
+          />
+          <q-btn
+            v-for="status in statusOptions"
+            :key="status.value"
+            @click="filterByStatus = status.value as typeof filterByStatus"
+            :color="filterByStatus === status.value ? 'red-14' : 'grey-14'"
+            :label="status.label"
+            class="tw-text-[11px] md:tw-text-sm"
+          />
+        </q-btn-group>
+
+        <!-- Сортировка -->
+        <q-btn-toggle
+          v-model="sortByDueDate"
+          class="tw-text-[11px] md:tw-text-sm tw-mx-auto md:tw-mx-0"
+          :options="[
+            { label: 'Сначала старые', value: 'asc' },
+            { label: 'Сначала новые', value: 'desc' },
+          ]"
+        />
+      </div>
+
       <!-- Список задач -->
       <div
         v-if="taskStore.isLoading"
@@ -48,26 +81,33 @@
       >
         <q-spinner-dots color="red-14" size="40px" />
       </div>
-      <q-list v-else bordered separator>
-        <!-- Добавлен cursor-pointer и обработчик клика для открытия модального окна -->
+      <!-- Используем НОВОЕ computed свойство filteredAndSortedTasks -->
+      <q-list
+        class="tw-mb-4"
+        v-else-if="filteredAndSortedTasks.length > 0"
+        bordered
+        separator
+      >
         <q-item
-          v-for="(task, index) in taskStore.tasks"
+          v-for="(task, index) in filteredAndSortedTasks"
           :key="task.id ?? index"
           clickable
           v-ripple
           @click="openEditModal(task)"
         >
+          <!-- ... секции q-item без изменений ... -->
           <q-item-section>
-            <q-item-label>{{ task.title }}</q-item-label>
-            <q-item-label caption>{{ task.description }}</q-item-label>
+            <q-item-label class="tw-truncate">{{ task.title }}</q-item-label>
+            <q-item-label class="tw-truncate" caption>{{
+              task.description
+            }}</q-item-label>
             <q-item-label caption>
               Срок: {{ new Date(task.dueDate as Date).toLocaleDateString() }}
             </q-item-label>
           </q-item-section>
-
-          <!-- Этот q-select теперь просто индикатор, для редактирования используется модальное окно -->
           <q-item-section side>
             <q-chip
+              class="tw-text-xs"
               dense
               :color="getStatusColor(task.status.value)"
               text-color="white"
@@ -75,7 +115,6 @@
               {{ task.status.label }}
             </q-chip>
           </q-item-section>
-
           <q-item-section side>
             <q-btn
               @click.stop="taskStore.deleteTask(task.id!)"
@@ -88,11 +127,10 @@
           </q-item-section>
         </q-item>
       </q-list>
-      <div
-        v-if="!taskStore.isLoading && taskStore.tasks.length === 0"
-        class="text-center text-grey q-mt-lg"
-      >
-        У вас пока нет задач.
+
+      <div v-else class="text-center text-grey q-mt-lg">
+        <p v-if="taskStore.tasks.length === 0">У вас пока нет задач.</p>
+        <p v-else>Нет задач, соответствующих вашему фильтру.</p>
       </div>
 
       <!-- Модальное окно для редактирования задачи -->
@@ -163,7 +201,7 @@ import {
   type Task,
   type TaskStatus,
 } from 'src/stores/task-store';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
@@ -186,7 +224,7 @@ const newTask = ref({
 });
 
 const handleAddTask = async () => {
-  if (!newTask.value.title.trim()) return;
+  if (!newTask.value.title.trim() || !newTask.value.description.trim()) return;
 
   const taskPayload = {
     ...newTask.value,
@@ -203,6 +241,29 @@ const handleAddTask = async () => {
     status: statusOptions[0] as TaskStatus,
   };
 };
+
+// --- Состояние для фильтрации и сортировки ---
+const filterByStatus = ref<'all' | 'not_started' | 'in_progress' | 'completed'>(
+  'all',
+);
+const sortByDueDate = ref<'asc' | 'desc'>('asc'); // 'asc' - сначала старые, 'desc' - сначала новые
+
+const filteredAndSortedTasks = computed(() => {
+  // 1. Фильтрация
+  const filtered = taskStore.tasks.filter((task) => {
+    if (filterByStatus.value === 'all') {
+      return true; // Показываем все задачи
+    }
+    return task.status.value === filterByStatus.value;
+  });
+
+  // 2. Сортировка
+  return filtered.sort((a, b) => {
+    const dateA = new Date(a.dueDate as Date).getTime();
+    const dateB = new Date(b.dueDate as Date).getTime();
+    return sortByDueDate.value === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+});
 
 // --- Состояние и логика для модального окна редактирования ---
 const isEditModalOpen = ref(false);
@@ -229,7 +290,7 @@ const openEditModal = (task: Task) => {
 const handleUpdateTask = async () => {
   const { id, ...updates } = taskToEdit.value;
 
-  if (!updates.title.trim()) return;
+  if (!updates.title.trim() || !updates.description.trim()) return;
 
   const payload = {
     ...updates,
