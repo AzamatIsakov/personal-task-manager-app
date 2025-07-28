@@ -12,8 +12,8 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
-    "postinstall": "quasar prepare",
-    "serve": "serve dist/spa"
+    "serve": "serve dist/spa",
+    "vercel-build": "quasar prepare && quasar build"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
