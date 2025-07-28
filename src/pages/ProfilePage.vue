@@ -34,12 +34,12 @@
           />
           <q-btn
             class="tw-w-full tw-mt-6"
-            color="primary"
+            color="red-14"
             label="Изменить профиль"
             @click="
               $q.notify({
                 message: 'Функция изменения профиля в разработке',
-                color: 'blue-10',
+                color: 'orange',
               })
             "
           />
@@ -52,13 +52,19 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import { useAuthStore } from 'src/stores/auth-store';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
+const router = useRouter();
+
+onMounted(async () => {
+  if (!authStore.isAuthenticated) {
+    await router.replace('/login');
+  }
+});
 
 const $q = useQuasar();
-
-console.log(authStore.user);
 
 const email = ref(authStore.user?.email);
 const userName = ref(authStore.user?.displayName);

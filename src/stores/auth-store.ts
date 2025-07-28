@@ -12,6 +12,8 @@ import {
 } from 'firebase/auth';
 import { Cookies, Notify } from 'quasar';
 
+import { useTaskStore } from './task-store';
+
 export const useAuthStore = defineStore('auth', () => {
   const user: Ref<User | null> = ref(null);
 
@@ -29,6 +31,13 @@ export const useAuthStore = defineStore('auth', () => {
     onAuthStateChanged(firebaseAuth, (currentUser) => {
       user.value = currentUser;
       isLoading.value = false;
+
+      const taskStore = useTaskStore();
+      if (currentUser) {
+        taskStore.fetchTasks();
+      } else {
+        taskStore.clearTasks();
+      }
     });
   };
 
@@ -102,6 +111,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await signOut(firebaseAuth);
       Notify.create({ message: 'Вы вышли из системы' });
+
+      const taskStore = useTaskStore();
+      taskStore.clearTasks();
     } catch (e) {
       const error = e as AuthError;
       Notify.create({ type: 'negative', message: 'Ошибка при выходе' });

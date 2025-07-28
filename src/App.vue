@@ -36,11 +36,11 @@ onMounted(() => {
 });
 
 watch(
-  () => authStore.user,
-  async (newUser) => {
+  () => authStore.isAuthenticated,
+  async (isAuthenticated) => {
     if (authStore.isLoading) return;
 
-    if (!newUser) {
+    if (!isAuthenticated) {
       if (currentRoute.path !== '/login' && currentRoute.path !== '/register') {
         await router.replace('/login');
       }
@@ -50,6 +50,6 @@ watch(
       await router.replace('/');
     }
   },
-  { immediate: true },
+  { immediate: false },
 );
 </script>

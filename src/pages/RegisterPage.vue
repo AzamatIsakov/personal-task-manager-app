@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import ThemeButton from 'src/components/ThemeButton/index.vue';
@@ -71,6 +71,12 @@ const submitPassword = ref('');
 const isFormValid = ref(false);
 
 const authStore = useAuthStore();
+
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await router.replace('/');
+  }
+});
 
 watch(
   [email, password, submitPassword],

@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import ThemeButton from 'src/components/ThemeButton/index.vue';
@@ -62,10 +62,20 @@ const router = useRouter();
 
 const authStore = useAuthStore();
 
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await router.replace('/profile');
+  }
+});
+
 const onSubmit = async () => {
   console.log('Login with', email.value, password.value);
 
   await authStore.login(email.value, password.value);
+
+  if (authStore.isAuthenticated) {
+    await router.replace('/');
+  }
 };
 
 watch(
